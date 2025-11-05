@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Protocol, Optional, Union
 
-from qimpy import TreeNode
+from qimpy import TreeNode, Energy
 from qimpy.io import CheckpointPath
 from qimpy.grid import Grid, FieldH
 from qimpy.grid.coulomb import Coulomb
@@ -11,10 +11,12 @@ from . import Linear
 class Model(Protocol):
     """Class requirements to use as a fluid model."""
 
-    def update(self, n_tilde: FieldH, rho_tilde: FieldH) -> float:
+    energy: Energy  #: energy components
+
+    def update(self, n_tilde: FieldH, rho_tilde: FieldH) -> None:
         """Update fluid given electron density `n_tilde` to determine
         cavity and total solute charge density `rho_tilde`.
-        Return the energy and accumulate gradients to `n_tilde.grad`
+        Update `energy` and accumulate gradients to `n_tilde.grad`
         and `rho_tilde.grad` if corresponding requires_grad is set."""
         ...
 
@@ -31,6 +33,7 @@ class Fluid(TreeNode):
         grid: Grid,
         coulomb: Coulomb,
         checkpoint_in: CheckpointPath = CheckpointPath(),
+        solvent: str = "",
         linear: Optional[Union[dict, Linear]] = None,
     ) -> None:
         """Specify one of the supported fluid models.
@@ -38,6 +41,8 @@ class Fluid(TreeNode):
 
         Parameters
         ----------
+        solvent
+            :yaml:`Name of solvent to load default model parameters.`
         linear
             :yaml:`Linear-response solvation model.`
         """
@@ -47,7 +52,9 @@ class Fluid(TreeNode):
             "model",
             checkpoint_in,
             ChildOptions("null", Null, None),
-            ChildOptions("linear", Linear, linear, grid=grid, coulomb=coulomb),
+            ChildOptions(
+                "linear", Linear, linear, grid=grid, coulomb=coulomb, solvent=solvent
+            ),
             have_default=True,
         )
         self.enabled = not isinstance(self.model, Null)

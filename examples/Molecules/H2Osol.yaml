@@ -21,6 +21,9 @@ electrons:
     smearing: no
 
 geometry: relax
-fluid: linear
+fluid:
+  solvent: H2O
+  linear:
+    GLSSA13: {}
 
 checkpoint: null
