@@ -12,11 +12,11 @@ def compute_shape_function(self, nC,rMin,rMax,eps,n: FieldR) -> FieldR):
     s[nC<=rMin]=1
     return s
   
-def propagateGradient_calc(nC,gs,rMin,rMax,eps):
+def shape_gradient(nC,gs,rMin,rMax,eps):
     g=torch.zeros_like(nC)
     m=(nC>rMin)&(nC<rMax)
     logD=math.log(rMax/rMin)
-    f=np.log(rMax/nC[m])/logD
+    f=torch.log(rMax/nC[m])/logD
     fr=-1/(nC[m]*logD)
     t=f-torch.sin(2*np.pi*f)/(2*np.pi)
     tf=1-torch.cos(2*np.pi*f)
