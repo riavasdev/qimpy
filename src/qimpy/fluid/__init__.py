@@ -15,3 +15,4 @@ from ._solvent_properties import (
 )
 from ._linear import Linear
 from ._fluid import Fluid
+from ._sccs import SCCS
