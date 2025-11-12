@@ -55,6 +55,9 @@ class Fluid(TreeNode):
             ChildOptions(
                 "linear", Linear, linear, grid=grid, coulomb=coulomb, solvent=solvent
             ),
+            ChildOptions(
+                "sccs", SCCS, sccs, grid=grid, coulomb=coulomb, solvent=solvent
+            ),
             have_default=True,
         )
         self.enabled = not isinstance(self.model, Null)
