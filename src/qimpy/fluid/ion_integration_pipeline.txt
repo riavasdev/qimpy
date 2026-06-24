@@ -1,0 +1,5 @@
+fluid ion contribution to free energy gradient backpropagation
+ion_conc calculate k2factor
+k2factor = (8*pi*n_bulk*z**2)/(epsBulk*kT)
+screening factor add to Poisson eqn 
+rhoTilde = -J(kappasq*I(phiTilde))
