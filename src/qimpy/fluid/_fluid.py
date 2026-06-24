@@ -31,6 +31,7 @@ class Fluid(TreeNode):
         self,
         *,
         grid: Grid,
+        ion_conc: float=1.0,
         coulomb: Coulomb,
         checkpoint_in: CheckpointPath = CheckpointPath(),
         solvent: str = "",
@@ -45,6 +46,8 @@ class Fluid(TreeNode):
             :yaml:`Name of solvent to load default model parameters.`
         linear
             :yaml:`Linear-response solvation model.`
+        ion-conc
+            :yaml:'ion concentration.'
         """
         super().__init__()
         ChildOptions = TreeNode.ChildOptions
