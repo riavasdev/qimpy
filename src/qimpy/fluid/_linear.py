@@ -36,12 +36,13 @@ class Linear(LinearSolve[FieldH]):
     coulomb: Coulomb
     epsilon_0: float  #: bulk static dielectric constant
     variant: Variant  #: variant of cavity shape and cavitation model
-
+    screening_length: Optional[float] #workshopping placeholder instead of eps/kappa 
     energy: Energy  #: energy components
     phi_tilde: FieldH  #: net electrostatic potential
     epsilon: FieldR  #: spatially varying dielectric constant
+    kappa_sq: float #kappa factor
     Kkernel: torch.Tensor  #: preconditioner kernel
-
+   
     def __init__(
         self,
         *,
@@ -51,6 +52,7 @@ class Linear(LinearSolve[FieldH]):
         n_iterations: int = 100,
         gradient_threshold: float = 1e-8,
         epsilon_0: Optional[float] = None,
+        screening_length: Optional[float] = None,
         solvent: str = "",
         GLSSA13: Optional[Union[dict, variants.GLSSA13]] = None,
         LA12: Optional[Union[dict, variants.LA12]] = None,
@@ -63,6 +65,8 @@ class Linear(LinearSolve[FieldH]):
         )
         self.grid = grid
         self.coulomb = coulomb
+        self.screening_length = screening_length
+        self.kappa_sq = 1.0 if screening_length is not None else 0.0 
         set_solvent_properties(
             solvent, DIELECTRIC_PROPERTIES, dict(epsilon_0=epsilon_0), self
         )
@@ -88,6 +92,8 @@ class Linear(LinearSolve[FieldH]):
 
     def hessian(self, phi_tilde: FieldH) -> FieldH:
         result = (~(~phi_tilde.gradient() * self.epsilon[None])).divergence()
+        if self.kappa_sq:
+            result = result - self.kappa_sq*phi_tilde
         return (-1 / (4 * np.pi)) * result
 
     def precondition(self, vector: FieldH) -> FieldH:
@@ -113,7 +119,9 @@ class Linear(LinearSolve[FieldH]):
             shape.grad = FieldR(
                 self.grid, data=(-(self.epsilon_0 - 1) / (8 * np.pi)) * grad_phi_sq
             )
-
+        if self.kappa_sq:
+                # Ionic contribution to the shape gradient (backprop):
+            shape.grad.data -= (self.kappa_sq / (8 * np.pi)) * (~self.phi_tilde).data
         # Cavitation terms:
         self.variant.update_energy(self.energy)
 
